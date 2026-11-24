@@ -42,7 +42,8 @@ body {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 2.5rem 4rem;
 }
-.page { max-width: 1080px; margin: 0 auto; display: grid; gap: 3.25rem; }
+.page { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 3.25rem; }
+.page > *, .stack > *, .plate > * { min-width: 0; }
 .col { max-width: 68ch; }
 h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.12; margin: 0; letter-spacing: -0.01em; }
 h1 { font-size: clamp(2rem, 4.6vw, 3.3rem); font-weight: 700; }
@@ -82,6 +83,8 @@ button.chip {
   border: 1px solid var(--rule); border-radius: 999px; padding: 0.45rem 0.8rem; cursor: pointer;
 }
 button.chip:hover { border-color: var(--muted); }
+button.chip[aria-pressed="true"] { background: var(--ink); color: var(--plate); border-color: var(--ink); }
+.row button.chip + button.chip { margin-left: 0.15rem; }
 :focus-visible { outline: 2px solid var(--cross); outline-offset: 2px; }
 .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
 .fig { display: grid; gap: 0.4rem; min-width: 0; }
@@ -107,7 +110,7 @@ button.chip:hover { border-color: var(--muted); }
 .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); }
 .sw { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 2px; vertical-align: -0.1rem; margin-right: 0.35rem; }
 ul.plain { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.5rem; }
-footer { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 1rem; }
+footer { overflow-wrap: anywhere; font-family: var(--mono); font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 1rem; }
 a { color: var(--side-s); }
 svg text { font-family: var(--mono); fill: var(--muted); }
 .node { cursor: pointer; }
@@ -119,7 +122,7 @@ svg text { font-family: var(--mono); fill: var(--muted); }
 <header class="stack col">
   <div class="eyebrow">A reading of “VP ≠ VNP over every field” · Claude, Anthropic · 2026</div>
   <h1>Communication geometry has no positive curvature</h1>
-  <p class="lede">The paper claims that the permanent has no small arithmetic circuit. Two of its pictures can be drawn and played with. In the first, the price of sending information between parties is a distance, and those distances never curve like a sphere. In the second, a small circuit forces information through two hubs, and geometry makes that too expensive.</p>
+  <p class="lede">The paper claims that the permanent has no small arithmetic circuit. Three of its pictures can be drawn and played with. In the first, the price of sending information between parties is a distance, and those distances never curve like a sphere. In the second, a small circuit forces information through two hubs, and geometry makes that too expensive. In the third, two crossing wires split exactly into layers that each prefer one cut. A last panel draws a neighbouring idea from physics.</p>
   <p class="status"><strong>Status, in the paper’s own words.</strong> The proofs were found and written by an AI model and formalized in Lean 4. No human mathematician has checked them, and whether the Lean statements mean what the theorem claims was judged only by AI readers. The result concerns arithmetic circuits and says nothing about P vs NP. This page explains; it does not check.</p>
 </header>
 
@@ -227,18 +230,93 @@ svg text { font-family: var(--mono); fill: var(--muted); }
   </div>
 </section>
 
+<section class="stack">
+  <div class="stack col">
+    <div class="eyebrow">5 · Crossing wires</div>
+    <h2>Two crossing wires, split into layers that each prefer one cut</h2>
+    <p>Section 3 rests on one exact identity, Proposition B.2 of the paper. Take two wires that cross: one from <i class="v">a</i> to <i class="v">c</i>, one from <i class="v">b</i> to <i class="v">d</i>. Cut the four parties left from right (<i class="v">ad</i> | <i class="v">bc</i>) or top from bottom (<i class="v">ab</i> | <i class="v">cd</i>), and either cut crosses both wires. As a table, the crossing has full rank across both.</p>
+    <p>The paper builds a 4 × 4 matrix <i class="v">M</i>(<i class="v">X</i>) of Meixner-type polynomials and takes its determinant, a polynomial Σ Ψ<sub>N</sub> <i class="v">X</i><sup>N</sup> whose coefficients are integer tables in <i class="v">a</i>, <i class="v">b</i>, <i class="v">c</i>, <i class="v">d</i>. Setting <i class="v">X</i> = 1 adds the layers back into the crossing exactly. Each layer can be ranked across each cut, and the two ends of the dial are lopsided: the first layer factors across one cut, the last across the other, and layer <i class="v">N</i> mirrors layer Θ − <i class="v">N</i> with the cuts swapped.</p>
+  </div>
+  <div class="plate">
+    <div class="plate-head">
+      <h3>The identity, computed exactly in your browser</h3>
+      <div class="controls">
+        <div class="control"><label>states per wire q</label><div class="row"><button class="chip" id="xq2" type="button">2</button><button class="chip" id="xq3" type="button">3</button><button class="chip" id="xq4" type="button">4</button></div></div>
+        <div class="control"><label for="xN">layer N</label><div class="row"><input id="xN" type="range" min="0" max="16" step="2" value="0"><output id="oN"></output></div></div>
+        <button class="chip" id="xSum" type="button">Add all layers, X = 1</button>
+      </div>
+    </div>
+    <div class="figs">
+      <div class="fig"><div class="label">The crossing · line width is rank</div><svg id="xX" viewBox="0 0 240 244" role="img" aria-label="Two crossing wires a to c and b to d, with the vertical and horizontal cuts drawn at a width set by the rank of the current layer"></svg></div>
+      <div class="fig"><div class="label">Layer as a table, split ad | bc</div><svg id="xM1" viewBox="0 0 240 244" role="img" aria-label="Heat map of the current layer flattened across the ad | bc split"></svg></div>
+      <div class="fig"><div class="label">Same layer, split ab | cd</div><svg id="xM2" viewBox="0 0 240 244" role="img" aria-label="Heat map of the current layer flattened across the ab | cd split"></svg></div>
+    </div>
+    <p class="caption" id="xNote" aria-live="polite"></p>
+    <div class="fig"><div class="label">Measured rank of every layer</div><svg id="xStrip" viewBox="0 0 640 150" role="img" aria-label="Rank across each cut for every even layer N"></svg></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--cross)"></span>rank across ad | bc</span>
+      <span><span class="sw" style="background:var(--ok)"></span>rank across ab | cd</span>
+      <span><span class="sw" style="background:var(--side-s)"></span>positive entry</span>
+      <span><span class="sw" style="background:var(--side-t)"></span>negative entry · shade is log |value|</span>
+    </div>
+    <div class="readout" id="xR"></div>
+    <p class="caption">Wire states are the paper’s symbols ({<i class="v">i</i>}, {<i class="v">j</i>}) of size one and energy 2<i class="v">q</i>, so Θ = 8<i class="v">q</i>. Polynomials, determinants and ranks use exact integer arithmetic (BigInt), with no rounding. The same tables were computed independently in Python (SymPy) for <i class="v">q</i> = 2 and 3 and agree, layer by layer. This checks small cases of one identity; it does not check the proof.</p>
+  </div>
+  <div class="stack col">
+    <p>Look at what the small cases do and do not show. Only the end layers are cheap, and most middle layers have full rank across both cuts. The proof uses the identity differently. It applies it to large classes of symbols (any size, high energy), where the wires carry about 2<sup>p</sup> and 2<sup>q</sup> states, and routes the product of the two wires through hubs once for each cut. Proposition B.3 then finds dotted hub wires of log-size <i class="v">r</i> across one cut and <i class="v">r</i>′ across the other with</p>
+    <div class="formula">identity:          r² + r′²  ≤  2(p² + q²)
+rigid crossing:    r = r′ = p + q,  so  r² + r′² = 2(p + q)²</div>
+    <p>The identity saves the cross term 4<i class="v">pq</i>. That saving, fed through the hub bound, is the inequality of Section 3: two crossing wires never make both cuts pay in full, so distances cannot bulge like a sphere. It is a statement about a limit, not a reading of the plot above.</p>
+  </div>
+</section>
+
+<section class="stack">
+  <div class="stack col">
+    <div class="eyebrow">6 · A neighbouring picture</div>
+    <h2>A geometry grown from scales, measured by cutting wires</h2>
+    <p>Physics has its own version of reading geometry off how information crosses a cut. A multiscale tensor network (MERA, after Vidal) describes a chain of quantum sites in layers: each layer couples neighbours and hands a coarser chain to the next. Drawn as a disk, the scales become a radius, and Swingle observed in 2012 that the result is a discrete hyperbolic plane, a slice of anti-de Sitter space.</p>
+    <p>In such a network, the entanglement between an arc of sites and the rest is at most the number of bonds in the smallest cut that separates them, times log of the bond size. That is a discrete form of the Ryu–Takayanagi formula: the cut is a shortest path through the bulk. Below is the skeleton of such a network, with every bond of capacity one. Choose an arc and the page finds the minimal cut by max-flow.</p>
+  </div>
+  <div class="plate">
+    <div class="plate-head">
+      <h3>Minimal cut for a boundary arc</h3>
+      <div class="controls">
+        <div class="control"><label>boundary sites n</label><div class="row"><button class="chip" id="hn16" type="button">16</button><button class="chip" id="hn32" type="button">32</button><button class="chip" id="hn64" type="button">64</button></div></div>
+        <div class="control"><label>network</label><div class="row"><button class="chip" id="hm0" type="button">with scale layers</button><button class="chip" id="hm1" type="button">chain only</button></div></div>
+        <div class="control"><label for="hS">arc start</label><div class="row"><input id="hS" type="range" min="0" max="31" step="1" value="0"><output id="oS"></output></div></div>
+        <div class="control"><label for="hL">arc length L</label><div class="row"><input id="hL" type="range" min="1" max="31" step="1" value="8"><output id="oHL"></output></div></div>
+      </div>
+    </div>
+    <div class="figs">
+      <div class="fig"><div class="label">The network as a disk · boundary on the rim</div><svg id="hNet" viewBox="0 0 320 320" role="img" aria-label="Layered network drawn as a disk; the chosen boundary arc, the nodes on its side of the minimal cut, and the cut bonds are highlighted"></svg></div>
+      <div class="fig"><div class="label">Cut size against arc length</div><svg id="hChart" viewBox="0 0 320 240" role="img" aria-label="Minimal cut size for every arc length from the chosen start, with a dashed reference curve 2 log2 L"></svg></div>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--side-s)"></span>the arc, and nodes on its side of the cut</span>
+      <span><span class="sw" style="background:var(--cross)"></span>bonds in the minimal cut</span>
+      <span><span class="sw" style="background:var(--muted)"></span>reference 2·log₂ L</span>
+    </div>
+    <div class="readout" id="hR"></div>
+    <p class="caption">Each layer has half the nodes of the one below. Every node is bonded to its parent and to its two neighbours in its own layer; those sideways bonds stand in for MERA’s disentanglers. With only the chain, any arc is cut by 2 bonds whatever its length. With the scale layers, the cut runs up into the disk and grows like log L, the behaviour of a critical chain. The curve is symmetric because an arc and its complement share their cut. This is a graph, not a tensor network with values: the min cut is an upper bound on entanglement, reached only for special choices, such as perfect tensors or random tensors with large bonds.</p>
+  </div>
+  <div class="stack col">
+    <p>How close is this to the paper? Both read geometry off the cost of cutting a system in two, and both find non-positive curvature. But they are different objects. Here the hyperbolic geometry belongs to one chosen network; in the paper, non-positive curvature is forced on every price of every field. One link is exact: Christandl, Vrana and Zuiddam built spectral points, the paper’s gauges, out of the entanglement entropy of quantum states. A simpler relative is the wavelet. A Haar wavelet tree, which sums a signal at coarser and coarser zoom levels, is a pure tree with no sideways bonds; Evenbly and White showed in 2016 that smoother wavelets correspond to MERA circuits with them.</p>
+  </div>
+</section>
+
 <section class="stack col">
-  <div class="eyebrow">5 · Limits of this page</div>
+  <div class="eyebrow">7 · Limits of this page</div>
   <h2>What is not shown here</h2>
   <ul class="plain">
     <li>The paper proves that the flat case or the <em>contracting case</em> holds for every field, and does not know which. The contracting case is a different argument entirely (Poincaré inequalities, rerouting laws, cutting computations into pieces, and a diagonal argument). It is not drawn here.</li>
     <li>Prices exist through a non-constructive argument (Zorn’s lemma). They cannot be computed for a real system such as a trained network.</li>
     <li>The bound is quasi-polynomial: m^(c·(log m)^(1/3)) gates. The best known circuits for the permanent are exponential. Much room remains.</li>
+    <li>Section 6 is a neighbouring idea from physics, drawn for comparison. It is not part of the paper’s argument.</li>
     <li>Boolean circuits are untouched, because they only need to be right on 0 and 1. P vs NP stays open, as the paper itself states.</li>
   </ul>
 </section>
 
-<footer>Built by Claude (Opus 5.5) from the paper’s Sections 2, B, C and E. Formulas and constants follow the paper; every number on this page is computed live in your browser. Source: github.com/anttiluode/CommunicationGeometryHasNoPositiveCurvature</footer>
+<footer>Built by Claude (Opus 5.5) from the paper’s Sections 2, B, C and E; Section 6 follows Swingle (2012) and Evenbly &amp; White (2016). Formulas and constants follow the paper; every number on this page is computed live in your browser. Source: github.com/anttiluode/CommunicationGeometryHasNoPositiveCurvature</footer>
 
 </div>
 
@@ -459,3 +537,284 @@ svg text { font-family: var(--mono); fill: var(--muted); }
   update();
 })();
 </script>
+<script>
+/* ---------- Section 5: crossing wires (Proposition B.2, n = 1 symbols) ---------- */
+function crossingLayers(e) {
+  // symbols of size 1 and energy e: ({i},{j}) with i + j = e/2 - 1
+  const h = e / 2 - 1, syms = [];
+  for (let i = 0; i <= h; i++) syms.push([i, h - i]);
+  const q = syms.length, Theta = 4 * e;
+  const comb = (n, k) => { if (k < 0 || k > n) return 0n; let r = 1n; for (let t = 0; t < k; t++) r = (r * BigInt(n - t)) / BigInt(t + 1); return r; };
+  const P = {
+    add(a, b) { const r = new Array(Math.max(a.length, b.length)).fill(0n); a.forEach((v, i) => (r[i] += v)); b.forEach((v, i) => (r[i] += v)); return r; },
+    mul(a, b) { if (!a.length || !b.length) return []; const r = new Array(a.length + b.length - 1).fill(0n); a.forEach((x, i) => b.forEach((z, j) => (r[i + j] += x * z))); return r; },
+    neg(a) { return a.map((v) => -v); },
+    mono(k, c = 1n) { const r = new Array(k + 1).fill(0n); r[k] = c; return r; },
+  };
+  const ym1 = [-1n, 0n, 1n]; // y - 1 with y = X^2
+  const Bp = (r, n) => { let s = []; for (let k = 0; k <= n; k++) { const m = n - k; s = P.add(s, P.mono(2 * m, comb(r, k) * comb(r + m, m) * (m % 2 ? -1n : 1n))); } return s; };
+  const Cp = (r, n) => { let s = []; for (let k = 0; k <= n; k++) { const m = n - k; s = P.add(s, P.mono(2 * k, comb(r, k) * comb(r + m, m) * (m % 2 ? -1n : 1n))); } return s; };
+  function entry(p, i, qq, j) {
+    const d = i === j, Xi = P.mono(2 * i + 1), Xj = P.mono(2 * j + 1), key = p + qq;
+    switch (key) {
+      case "ad": return Cp(i, j);
+      case "ac": return d ? Xi : [];
+      case "ab": return P.mul(P.mul(ym1, Xi), Bp(i, j));
+      case "da": return P.neg(Cp(j, i));
+      case "dc": return P.mul(Xj, Bp(j, i));
+      case "db": return d ? P.neg(Xi) : [];
+      case "ca": return d ? P.neg(Xi) : [];
+      case "cd": return P.neg(P.mul(Xi, Bp(i, j)));
+      case "cb": return P.neg(P.mul(ym1, Cp(i, j)));
+      case "ba": return P.neg(P.mul(P.mul(ym1, Xj), Bp(j, i)));
+      case "bd": return d ? Xi : [];
+      case "bc": return P.mul(ym1, Cp(j, i));
+      default: return [];
+    }
+  }
+  const perms = []; (function gen(a, used) { if (a.length === 4) { perms.push(a.slice()); return; } for (let t = 0; t < 4; t++) if (!used[t]) { used[t] = 1; a.push(t); gen(a, used); a.pop(); used[t] = 0; } })([], []);
+  const sgn = (p) => { let s = 1; for (let x = 0; x < 4; x++) for (let z = x + 1; z < 4; z++) if (p[x] > p[z]) s = -s; return s; };
+  function det(M) { let r = []; for (const p of perms) { let t = [1n]; for (let x = 0; x < 4; x++) { t = P.mul(t, M[x][p[x]]); if (!t.length) break; } if (t.length) r = P.add(r, sgn(p) > 0 ? t : P.neg(t)); } return r; }
+  // tensor entries: indices a,b,c,d; c and d renamed by swapping I and J
+  const psi = {};
+  let eps = null;
+  for (let a = 0; a < q; a++) for (let b = 0; b < q; b++) for (let c = 0; c < q; c++) for (let d = 0; d < q; d++) {
+    const sa = syms[a], sb = syms[b], sc = [syms[c][1], syms[c][0]], sd = [syms[d][1], syms[d][0]];
+    const rows = [["a", sa[0]], ["d", sd[0]], ["c", sc[0]], ["b", sb[0]]];
+    const cols = [["a", sa[1]], ["d", sd[1]], ["c", sc[1]], ["b", sb[1]]];
+    const M = rows.map(([p, i]) => cols.map(([qq, j]) => entry(p, i, qq, j)));
+    const poly = det(M);
+    psi[[a, b, c, d]] = poly;
+    if (a === c && b === d) { const v = poly.reduce((s, x) => s + x, 0n); if (eps === null) eps = v; }
+  }
+  const coef = (poly, N) => (N < poly.length ? poly[N] : 0n) * eps;
+  function rank(Mx) { // exact rank by fraction-free elimination
+    const A = Mx.map((r) => r.slice()); const n = A.length, m = A[0].length; let rk = 0, prev = 1n;
+    for (let col = 0; col < m && rk < n; col++) {
+      let piv = -1; for (let r = rk; r < n; r++) if (A[r][col] !== 0n) { piv = r; break; }
+      if (piv < 0) continue; [A[rk], A[piv]] = [A[piv], A[rk]];
+      for (let r = rk + 1; r < n; r++) { for (let c2 = col + 1; c2 < m; c2++) A[r][c2] = (A[rk][col] * A[r][c2] - A[r][col] * A[rk][c2]) / prev; A[r][col] = 0n; }
+      prev = A[rk][col]; rk++;
+    }
+    return rk;
+  }
+  const flat = (N, split) => { const Mx = Array.from({ length: q * q }, () => new Array(q * q).fill(0n));
+    for (let a = 0; a < q; a++) for (let b = 0; b < q; b++) for (let c = 0; c < q; c++) for (let d = 0; d < q; d++) {
+      const v = N === "sum" ? psi[[a, b, c, d]].reduce((s, x) => s + x, 0n) * eps : coef(psi[[a, b, c, d]], N);
+      if (split === "ad|bc") Mx[a * q + d][b * q + c] = v; else Mx[a * q + b][c * q + d] = v;
+    }
+    return Mx; };
+  const layers = [];
+  for (let N = 0; N <= Theta; N++) {
+    const A = flat(N, "ad|bc"), Bm = flat(N, "ab|cd");
+    const nonzero = A.some((r) => r.some((v) => v !== 0n));
+    layers.push({ N, nonzero, A, B: Bm, rAD: nonzero ? rank(A) : 0, rAB: nonzero ? rank(Bm) : 0});
+  }
+  // reconstruction check at X = 1
+  let errors = 0, entries = 0;
+  for (let a = 0; a < q; a++) for (let b = 0; b < q; b++) for (let c = 0; c < q; c++) for (let d = 0; d < q; d++) {
+    const v = psi[[a, b, c, d]].reduce((s, x) => s + x, 0n) * eps; entries++;
+    if (v !== ((a === c && b === d) ? 1n : 0n)) errors++;
+  }
+  return { q, Theta, eps, layers, sum: { A: flat("sum", "ad|bc"), B: flat("sum", "ab|cd") }, errors, entries, rank };
+}
+
+/* ---------- Section 6: minimal cuts in a layered (hyperbolic) network ---------- */
+function hyperNetwork(n0 = 16, chainOnly = false) {
+  const counts = []; for (let n = n0; n >= 1; n >>= 1) counts.push(n);
+  void 0, nodes = [], idx = {};
+  counts.forEach((n, l) => { for (let k = 0; k < n; k++) { idx[l + ":" + k] = nodes.length; nodes.push({ l, k }); } });
+  const edges = [];
+  if (chainOnly) { for (let k = 0; k < n0; k++) edges.push([idx["0:" + k], idx["0:" + ((k + 1) % n0)], "ring"]); return { counts, nodes, idx, edges, chainOnly }; }
+  for (let l = 0; l < counts.length - 1; l++) for (let k = 0; k < counts[l]; k++) edges.push([idx[l + ":" + k], idx[l + 1 + ":" + Math.floor(k / 2)], "tree"]);
+  for (let l = 1; l < counts.length - 1; l++) { const n = counts[l]; for (let k = 0; k < (n > 2 ? n : 1); k++) edges.push([idx[l + ":" + k], idx[l + ":" + ((k + 1) % n)], "ring"]); }
+  return { counts, nodes, idx, edges, chainOnly };
+}
+function minCut(net, region) {
+  const n = net.nodes.length, S = n, T = n + 1, cap = new Map(), adj = Array.from({ length: n + 2 }, () => []);
+  const add = (u, v, c) => { const k1 = u + ">" + v, k2 = v + ">" + u; if (!cap.has(k1)) { adj[u].push(v); adj[v].push(u); cap.set(k1, 0); cap.set(k2, 0); } cap.set(k1, cap.get(k1) + c); };
+  net.edges.forEach(([u, v]) => { add(u, v, 1); add(v, u, 1); });
+  for (let s = 0; s < net.counts[0]; s++) { const u = net.idx["0:" + s]; region.has(s) ? add(S, u, 1e9) : add(u, T, 1e9); }
+  let flow = 0;
+  for (;;) {
+    const prev = new Array(n + 2).fill(-1); prev[S] = S; const Q = [S];
+    while (Q.length && prev[T] < 0) { const u = Q.shift(); for (const v of adj[u]) if (prev[v] < 0 && cap.get(u + ">" + v) > 0) { prev[v] = u; Q.push(v); } }
+    if (prev[T] < 0) break;
+    let f = Infinity; for (let v = T; v !== S; v = prev[v]) f = Math.min(f, cap.get(prev[v] + ">" + v));
+    for (let v = T; v !== S; v = prev[v]) { const u = prev[v]; cap.set(u + ">" + v, cap.get(u + ">" + v) - f); cap.set(v + ">" + u, cap.get(v + ">" + u) + f); }
+    flow += f;
+  }
+  const seen = new Array(n + 2).fill(false); seen[S] = true; const Q = [S];
+  while (Q.length) { const u = Q.shift(); for (const v of adj[u]) if (!seen[v] && cap.get(u + ">" + v) > 0) { seen[v] = true; Q.push(v); } }
+  const cut = net.edges.filter(([u, v]) => seen[u] !== seen[v]);
+  return { size: flow, cut, side: seen };
+}
+
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+  const cell = (k, v, sub) => `<div class="cell"><div class="k">${k}</div><div class="val">${v}</div><div class="sub">${sub || ""}</div></div>`;
+
+  /* ---------- Section 5 UI ---------- */
+  const cache = {};
+  let xq = 2, xN = 0, xsum = false;
+  const data = () => (cache[xq] ||= crossingLayers(2 * xq));
+  function heat(svg, M, label) {
+    svg.textContent = "";
+    const n = M.length, size = 200, c = size / n, o = 20;
+    let mx = 0n; for (const r of M) for (const v of r) { const a = v < 0n ? -v : v; if (a > mx) mx = a; }
+    const lmx = Math.log1p(Number(mx)) || 1;
+    el("rect", { x: o, y: o, width: size, height: size, fill: "none", stroke: "var(--rule)" }, svg);
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+      const v = M[i][j]; if (v === 0n) continue;
+      const a = Math.log1p(Math.abs(Number(v))) / lmx;
+      const r = el("rect", { x: o + j * c + 0.5, y: o + i * c + 0.5, width: c - 1, height: c - 1, fill: v > 0n ? "var(--side-s)" : "var(--side-t)", "fill-opacity": (0.25 + 0.75 * a).toFixed(3) }, svg);
+      el("title", {}, r).textContent = v.toString();
+    }
+    const t = el("text", { x: o + size / 2, y: o + size + 16, "text-anchor": "middle", "font-size": 11 }, svg); t.textContent = label;
+  }
+  function drawX(r1, r2, q2) {
+    const svg = $("xX"); svg.textContent = "";
+    const P = { a: [50, 50], b: [190, 50], c: [190, 190], d: [50, 190] };
+    const w = (r) => 1.5 + (7 * (r - 1)) / Math.max(1, q2 - 1);
+    el("line", { x1: 120, y1: 16, x2: 120, y2: 224, stroke: "var(--cross)", "stroke-width": w(r1), "stroke-linecap": "round", opacity: 0.85 }, svg);
+    el("line", { x1: 16, y1: 120, x2: 224, y2: 120, stroke: "var(--ok)", "stroke-width": w(r2), "stroke-linecap": "round", opacity: 0.85 }, svg);
+    for (const [u, v] of [["a", "c"], ["b", "d"]]) el("line", { x1: P[u][0], y1: P[u][1], x2: P[v][0], y2: P[v][1], stroke: "var(--ink)", "stroke-width": 2 }, svg);
+    for (const k in P) {
+      el("circle", { cx: P[k][0], cy: P[k][1], r: 10, fill: "var(--plate)", stroke: "var(--ink)", "stroke-width": 1.5 }, svg);
+      const t = el("text", { x: P[k][0], y: P[k][1] + 4, "text-anchor": "middle", "font-size": 12, style: "fill:var(--ink)" }, svg); t.textContent = k;
+    }
+    const t1 = el("text", { x: 126, y: 236, "font-size": 11, style: "fill:var(--cross)" }, svg); t1.textContent = `ad | bc  rank ${r1}`;
+    const t2 = el("text", { x: 4, y: 112, "font-size": 11, style: "fill:var(--ok)" }, svg); t2.textContent = `ab | cd  rank ${r2}`;
+  }
+  function strip(D) {
+    const svg = $("xStrip"); svg.textContent = "";
+    const W = 640, H = 150, l = 44, r = 12, t = 12, b = 30, q2 = D.q * D.q;
+    const xs = (N) => l + ((W - l - r) * N) / D.Theta, ys = (v) => t + (H - t - b) * (1 - v / q2);
+    for (const v of [0, q2]) {
+      el("line", { x1: l, x2: W - r, y1: ys(v), y2: ys(v), stroke: "var(--rule)" }, svg);
+      const tx = el("text", { x: l - 6, y: ys(v) + 4, "text-anchor": "end", "font-size": 10 }, svg); tx.textContent = v === q2 ? `q² = ${q2}` : "0";
+    }
+    const ev = D.layers.filter((L) => L.N % 2 === 0);
+    for (const [key, col, dy] of [["rAD", "var(--cross)", -1.5], ["rAB", "var(--ok)", 1.5]]) {
+      el("polyline", { points: ev.map((L) => `${xs(L.N)},${ys(L[key]) + dy}`).join(" "), fill: "none", stroke: col, "stroke-width": 2 }, svg);
+      for (const L of ev) el("circle", { cx: xs(L.N), cy: ys(L[key]) + dy, r: 3, fill: col }, svg);
+    }
+    if (!xsum) el("line", { x1: xs(xN), x2: xs(xN), y1: t - 4, y2: H - b + 4, stroke: "var(--ink)", "stroke-dasharray": "3 3" }, svg);
+    for (const N of [0, D.Theta / 2, D.Theta]) { const tx = el("text", { x: xs(N), y: H - 10, "text-anchor": N === 0 ? "start" : N === D.Theta ? "end" : "middle", "font-size": 10 }, svg); tx.textContent = `N = ${N}`; }
+  }
+  function updX() {
+    const D = data(), q2 = D.q * D.q;
+    $("xN").max = D.Theta; if (xN > D.Theta) xN = D.Theta; $("xN").value = xN;
+    $("oN").textContent = xsum ? "all, X = 1" : `${xN} of ${D.Theta}`;
+    for (const q of [2, 3, 4]) $("xq" + q).setAttribute("aria-pressed", q === xq);
+    $("xSum").setAttribute("aria-pressed", xsum);
+    let A, B, r1, r2, note;
+    if (xsum) {
+      A = D.sum.A; B = D.sum.B; r1 = D.rank(A); r2 = D.rank(B);
+      note = `Every layer added back. The result is the crossing itself: entry 1 when a = c and b = d, else 0. Checked on all ${D.entries} entries: ${D.errors} errors.`;
+    } else {
+      const L = D.layers[xN]; A = L.A; B = L.B; r1 = L.rAD; r2 = L.rAB;
+      const M = D.layers[D.Theta - xN];
+      note = !L.nonzero ? "Odd layers are zero." :
+        r1 < q2 && r2 === q2 ? "This layer is cheap across ad | bc and full rank across ab | cd." :
+        r2 < q2 && r1 === q2 ? "This layer is cheap across ab | cd and full rank across ad | bc." :
+        r1 < q2 && r2 < q2 ? "Below full rank across both cuts." : "Full rank across both cuts. At this small size most middle layers are.";
+      note += ` Its mirror, layer ${D.Theta - xN}, has the two ranks swapped: (${M.rAB}, ${M.rAD}).`;
+    }
+    heat($("xM1"), A, "rows (a,d) · columns (b,c)");
+    heat($("xM2"), B, "rows (a,b) · columns (c,d)");
+    drawX(r1, r2, q2);
+    strip(D);
+    $("xNote").textContent = note;
+    $("xR").innerHTML = [
+      cell("states per wire q", `${D.q}`, `symbols of energy ${2 * D.q}`),
+      cell("layers Θ + 1", `${D.Theta + 1}`, "coefficients of X⁰ … X^Θ"),
+      cell("rank across ad | bc", `${r1}`, `out of q² = ${q2}`),
+      cell("rank across ab | cd", `${r2}`, `out of q² = ${q2}`),
+      cell("reconstruction at X = 1", `${D.errors} / ${D.entries}`, "entries wrong, exact integers"),
+    ].join("");
+  }
+  for (const q of [2, 3, 4]) $("xq" + q).addEventListener("click", () => { xq = q; updX(); });
+  $("xN").addEventListener("input", () => { xN = +$("xN").value; xsum = false; updX(); });
+  $("xSum").addEventListener("click", () => { xsum = !xsum; updX(); });
+  updX();
+
+  /* ---------- Section 6 UI ---------- */
+  let n0 = 32, chain = false, hs = 0, hl = 8;
+  function pos(net, i) {
+    const { l, k } = net.nodes[i], Lc = net.counts.length, n = net.counts[l];
+    if (n === 1 && l > 0) return [160, 160];
+    const R = 148 * Math.pow((Lc - 1 - l) / (Lc - 1), 0.85);
+    const th = (2 * Math.PI * (k + 0.5) * (n0 / n)) / n0 - Math.PI / 2;
+    return [160 + R * Math.cos(th), 160 + R * Math.sin(th)];
+  }
+  function region() { const s = new Set(); for (let i = 0; i < hl; i++) s.add((hs + i) % n0); return s; }
+  function drawNet(net, res, reg) {
+    const svg = $("hNet"); svg.textContent = "";
+    const cutSet = new Set(res.cut.map(([u, v]) => u + "-" + v));
+    // shade the chosen arc
+    const a0 = (2 * Math.PI * hs) / n0 - Math.PI / 2, a1 = (2 * Math.PI * (hs + hl)) / n0 - Math.PI / 2, R = 156;
+    el("path", { d: `M${160 + R * Math.cos(a0)},${160 + R * Math.sin(a0)} A${R},${R} 0 ${hl > n0 / 2 ? 1 : 0} 1 ${160 + R * Math.cos(a1)},${160 + R * Math.sin(a1)}`, fill: "none", stroke: "var(--side-s)", "stroke-width": 5, "stroke-linecap": "round", opacity: 0.5 }, svg);
+    for (const [u, v, kind] of net.edges) {
+      const p = pos(net, u), q = pos(net, v), hit = cutSet.has(u + "-" + v);
+      const attrs = { fill: "none", stroke: hit ? "var(--cross)" : "var(--muted)", "stroke-width": hit ? 3 : 1, opacity: hit ? 1 : 0.55 };
+      if (kind === "ring") {
+        const l = net.nodes[u].l, Lc = net.counts.length, Rr = 148 * Math.pow((Lc - 1 - l) / (Lc - 1), 0.85);
+        el("path", Object.assign({ d: `M${p[0]},${p[1]} A${Rr},${Rr} 0 0 1 ${q[0]},${q[1]}` }, attrs), svg);
+      } else el("line", Object.assign({ x1: p[0], y1: p[1], x2: q[0], y2: q[1] }, attrs), svg);
+    }
+    net.nodes.forEach((nd, i) => {
+      const p = pos(net, i), inside = res.side[i];
+      el("circle", { cx: p[0], cy: p[1], r: nd.l === 0 ? (n0 > 32 ? 2.6 : 3.4) : 2.6, fill: inside ? "var(--side-s)" : "var(--plate)", stroke: inside ? "var(--side-s)" : "var(--muted)", "stroke-width": 1 }, svg);
+    });
+  }
+  function chart(cuts) {
+    const svg = $("hChart"); svg.textContent = "";
+    const W = 320, H = 240, l = 34, r = 10, t = 12, b = 34;
+    const mx = Math.max(...cuts, 2 * Math.log2(n0 / 2)) + 1;
+    const xs = (L) => l + ((W - l - r) * L) / n0, ys = (v) => t + (H - t - b) * (1 - v / mx);
+    for (let v = 0; v <= mx; v += 2) {
+      el("line", { x1: l, x2: W - r, y1: ys(v), y2: ys(v), stroke: "var(--rule)" }, svg);
+      const tx = el("text", { x: l - 6, y: ys(v) + 4, "text-anchor": "end", "font-size": 10 }, svg); tx.textContent = v;
+    }
+    const ref = []; for (let L = 1; L < n0; L++) ref.push(`${xs(L)},${ys(2 * Math.log2(Math.min(L, n0 - L)))}`);
+    el("polyline", { points: ref.join(" "), fill: "none", stroke: "var(--muted)", "stroke-dasharray": "4 4", "stroke-width": 1.3 }, svg);
+    el("polyline", { points: cuts.map((c, i) => `${xs(i + 1)},${ys(c)}`).join(" "), fill: "none", stroke: "var(--cross)", "stroke-width": 2 }, svg);
+    el("circle", { cx: xs(hl), cy: ys(cuts[hl - 1]), r: 4.5, fill: "var(--cross)" }, svg);
+    for (const L of [1, n0 / 2, n0 - 1]) { const tx = el("text", { x: xs(L), y: H - 18, "text-anchor": "middle", "font-size": 10 }, svg); tx.textContent = L; }
+    const tx = el("text", { x: (l + W - r) / 2, y: H - 4, "text-anchor": "middle", "font-size": 10 }, svg); tx.textContent = "arc length L, from the chosen start";
+  }
+  function updH() {
+    for (const n of [16, 32, 64]) $("hn" + n).setAttribute("aria-pressed", n === n0);
+    $("hm0").setAttribute("aria-pressed", !chain); $("hm1").setAttribute("aria-pressed", chain);
+    $("hS").max = n0 - 1; $("hL").max = n0 - 1;
+    if (hs > n0 - 1) hs = 0; if (hl > n0 - 1) hl = n0 / 2;
+    $("hS").value = hs; $("hL").value = hl; $("oS").textContent = hs; $("oHL").textContent = hl;
+    const net = hyperNetwork(n0, chain), res = minCut(net, region());
+    drawNet(net, res, region());
+    const cuts = []; for (let L = 1; L < n0; L++) { const s = new Set(); for (let i = 0; i < L; i++) s.add((hs + i) % n0); cuts.push(minCut(net, s).size); }
+    chart(cuts);
+    const other = minCut(hyperNetwork(n0, !chain), region()).size;
+    $("hR").innerHTML = [
+      cell("wires in the minimal cut", `${res.size}`, chain ? "chain only" : "with scale layers"),
+      cell(chain ? "same arc, with scale layers" : "same arc, chain only", `${other}`, chain ? "grows with L" : "always 2"),
+      cell("reference 2·log₂ min(L, n−L)", (2 * Math.log2(Math.min(hl, n0 - hl))).toFixed(2), "dashed line in the chart"),
+      cell("arc and its complement", `${cuts[hl - 1]} = ${cuts[n0 - hl - 1]}`, `L = ${hl} and L = ${n0 - hl}`),
+    ].join("");
+  }
+  for (const n of [16, 32, 64]) $("hn" + n).addEventListener("click", () => { n0 = n; hl = Math.min(hl, n - 1); updH(); });
+  $("hm0").addEventListener("click", () => { chain = false; updH(); });
+  $("hm1").addEventListener("click", () => { chain = true; updH(); });
+  $("hS").addEventListener("input", () => { hs = +$("hS").value; updH(); });
+  $("hL").addEventListener("input", () => { hl = +$("hL").value; updH(); });
+  updH();
+})();
+</script>
+
