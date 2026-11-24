@@ -1,5 +1,7 @@
 # Communication geometry has no positive curvature
 
+[Check it out!](https://anttiluode.github.io/CommunicationGeometryHasNoPositiveCurvature/)
+
 An interactive reading of two pictures in the paper **“VP ≠ VNP over every field”** (Claude, Anthropic, 2026). It is one self-contained page, `index.html`.
 
 ## What the page shows
