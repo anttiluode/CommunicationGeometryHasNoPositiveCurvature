@@ -1,0 +1,461 @@
+<title>No Positive Curvature</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="An interactive reading of two pictures in the paper 'VP ≠ VNP over every field': why the geometry of communication has no positive curvature, and how hubs turn a circuit into a length.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a reading column with wide figure plates; each plate is a small instrument on drafting paper. */
+:root {
+  --paper: #f4f6f9;
+  --plate: #ffffff;
+  --ink: #161d2b;
+  --muted: #586276;
+  --rule: #d8dde6;
+  --grid: #e8ecf2;
+  --side-s: #2848c8;      /* nodes in S, hub o_S */
+  --side-t: #a86a12;      /* nodes outside S, hub -o_S */
+  --cross: #b8236f;       /* wires that cross the cut */
+  --ok: #1f7a4d;
+  --bad: #b42318;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --text: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f131a; --plate: #161b24; --ink: #e5e9f1; --muted: #98a2b6; --rule: #2a3242; --grid: #1d2330;
+    --side-s: #8aa4ff; --side-t: #e2a64b; --cross: #f472b6; --ok: #5fd39a; --bad: #ff8a7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f131a; --plate: #161b24; --ink: #e5e9f1; --muted: #98a2b6; --rule: #2a3242; --grid: #1d2330;
+  --side-s: #8aa4ff; --side-t: #e2a64b; --cross: #f472b6; --ok: #5fd39a; --bad: #ff8a7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--text); font-size: 1.0625rem; line-height: 1.62;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+.page { max-width: 1080px; margin: 0 auto; display: grid; gap: 3.25rem; }
+.col { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.12; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 4.6vw, 3.3rem); font-weight: 700; }
+h2 { font-size: clamp(1.4rem, 2.6vw, 1.85rem); font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 500; }
+p { margin: 0; }
+.stack { display: grid; gap: 1rem; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.2rem; color: var(--ink); }
+.status {
+  font-family: var(--mono); font-size: 0.8rem; line-height: 1.55; color: var(--muted);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding-block: 0.8rem;
+}
+.status strong { color: var(--ink); font-weight: 600; }
+.formula {
+  font-family: var(--mono); font-size: 0.92rem; background: var(--plate); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 0.8rem 1rem; overflow-x: auto; white-space: pre; line-height: 1.6;
+}
+i.v { font-style: italic; }
+.plate {
+  background: var(--plate); border: 1px solid var(--rule); border-radius: 10px;
+  padding: 1.25rem; display: grid; gap: 1.1rem;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px; background-position: -1px -1px;
+}
+.plate > * { position: relative; }
+.plate-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1.5rem; align-items: baseline; }
+.caption { font-size: 0.92rem; color: var(--muted); max-width: 70ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.75rem 1.75rem; align-items: center; }
+.control { display: grid; gap: 0.25rem; min-width: 0; }
+.control label { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+.control output { font-family: var(--mono); font-size: 0.85rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+input[type="range"] { width: min(240px, 70vw); accent-color: var(--cross); }
+.row { display: flex; gap: 0.5rem; align-items: baseline; }
+button.chip {
+  font: 500 0.82rem/1 var(--mono); color: var(--ink); background: var(--plate);
+  border: 1px solid var(--rule); border-radius: 999px; padding: 0.45rem 0.8rem; cursor: pointer;
+}
+button.chip:hover { border-color: var(--muted); }
+:focus-visible { outline: 2px solid var(--cross); outline-offset: 2px; }
+.figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.fig { display: grid; gap: 0.4rem; min-width: 0; }
+.fig svg { width: 100%; height: auto; max-width: 100%; display: block; }
+.fig .label { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.geo { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.9rem; }
+.geo-card {
+  border: 1px solid var(--rule); border-radius: 8px; padding: 0.8rem; background: var(--plate);
+  display: grid; gap: 0.35rem; min-width: 0;
+}
+.geo-card svg { width: 100%; height: auto; display: block; }
+.geo-card .name { font-family: var(--display); font-weight: 500; }
+.gamma { font-family: var(--mono); font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+.verdict { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; padding: 0.2rem 0.5rem; border-radius: 4px; justify-self: start; border: 1px solid currentColor; }
+.verdict.ok { color: var(--ok); }
+.verdict.bad { color: var(--bad); }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.6rem 1.25rem; }
+.cell { display: grid; gap: 0.1rem; border-top: 1px solid var(--rule); padding-top: 0.5rem; min-width: 0; }
+.cell .k { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; }
+.cell .val { font-family: var(--mono); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.cell .sub { font-size: 0.82rem; color: var(--muted); }
+.warn { font-family: var(--mono); font-size: 0.82rem; color: var(--bad); }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); }
+.sw { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 2px; vertical-align: -0.1rem; margin-right: 0.35rem; }
+ul.plain { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.5rem; }
+footer { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 1rem; }
+a { color: var(--side-s); }
+svg text { font-family: var(--mono); fill: var(--muted); }
+.node { cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) { .edge, .node circle { transition: stroke 160ms, stroke-width 160ms, fill 160ms; } }
+</style>
+
+<div class="page">
+
+<header class="stack col">
+  <div class="eyebrow">A reading of “VP ≠ VNP over every field” · Claude, Anthropic · 2026</div>
+  <h1>Communication geometry has no positive curvature</h1>
+  <p class="lede">The paper claims that the permanent has no small arithmetic circuit. Two of its pictures can be drawn and played with. In the first, the price of sending information between parties is a distance, and those distances never curve like a sphere. In the second, a small circuit forces information through two hubs, and geometry makes that too expensive.</p>
+  <p class="status"><strong>Status, in the paper’s own words.</strong> The proofs were found and written by an AI model and formalized in Lean 4. No human mathematician has checked them, and whether the Lean statements mean what the theorem claims was judged only by AI readers. The result concerns arithmetic circuits and says nothing about P vs NP. This page explains; it does not check.</p>
+</header>
+
+<section class="stack col">
+  <div class="eyebrow">1 · The price of a wire</div>
+  <h2>A wire between two parties has a price, and the price is a distance</h2>
+  <p>Picture a few parties, each holding one index of a shared table of numbers (a tensor). The simplest shared table is a <em>wire</em>: two parties holding matching copies of one of <i class="v">q</i> possible states. A wire of <i class="v">q</i> states carries log₂ <i class="v">q</i> bits.</p>
+  <p>The paper measures tables with a <em>spectral point</em> φ, a gauge that multiplies over products and never grows when a party throws information away. Every such gauge assigns a wire a price of the form</p>
+  <div class="formula">φ( wire of q states between u and v ) = q^d(u,v)      with 0 ≤ d(u,v) ≤ 1</div>
+  <p>The exponent <i class="v">d</i>(<i class="v">u</i>,<i class="v">v</i>) obeys the triangle inequality, so it is a distance between parties: what one bit of wire between them costs. A network of wires then has a <em>length</em>, the sum over its wires of bits times distance. Limits of these distances are what the paper calls <em>prices</em>.</p>
+</section>
+
+<section class="stack">
+  <div class="stack col">
+    <div class="eyebrow">2 · Hubs</div>
+    <h2>Rank becomes distance</h2>
+    <p>Split the parties into two groups. If a table has rank at most <i class="v">r</i> across that split, it can be produced by wiring every party in the first group to a hub <i class="v">o</i>₁, every party in the second group to a hub <i class="v">o</i>₂, and joining the two hubs with one wire of <i class="v">r</i> states. Its price is therefore at most the length of that hub network:</p>
+    <div class="formula">log φ(t)  ≤  Σ  d(p, o₁)·bits(p)  +  Σ  d(p, o₂)·bits(p)  +  d(o₁, o₂)·log r
+           p in group 1             p in group 2</div>
+    <p>A circuit with <i class="v">L</i> gates splits any polynomial it computes into a few pieces of rank at most <i class="v">L</i> across balanced splits. So the circuit size enters only through the thin wire between the hubs, as log <i class="v">L</i>. If a table is a long network of wires, and some geometry lets the hubs sit close together while still shortening every party’s route, then log <i class="v">L</i> has to be large.</p>
+  </div>
+  <figure class="plate" aria-label="Hub routing diagram">
+    <div class="fig">
+      <svg viewBox="0 0 640 210" role="img" aria-label="Parties of group 1 wired to hub o1, parties of group 2 wired to hub o2, and a thin dotted wire of rank r between the hubs">
+        <g stroke="var(--side-s)" stroke-width="2">
+          <line x1="70" y1="40" x2="230" y2="105"/><line x1="55" y1="105" x2="230" y2="105"/><line x1="70" y1="170" x2="230" y2="105"/>
+        </g>
+        <g stroke="var(--side-t)" stroke-width="2">
+          <line x1="570" y1="40" x2="410" y2="105"/><line x1="585" y1="105" x2="410" y2="105"/><line x1="570" y1="170" x2="410" y2="105"/>
+        </g>
+        <line x1="230" y1="105" x2="410" y2="105" stroke="var(--cross)" stroke-width="2" stroke-dasharray="5 6"/>
+        <g fill="var(--plate)" stroke="var(--ink)" stroke-width="1.5">
+          <circle cx="70" cy="40" r="9"/><circle cx="55" cy="105" r="9"/><circle cx="70" cy="170" r="9"/>
+          <circle cx="570" cy="40" r="9"/><circle cx="585" cy="105" r="9"/><circle cx="570" cy="170" r="9"/>
+        </g>
+        <circle cx="230" cy="105" r="11" fill="var(--side-s)"/><circle cx="410" cy="105" r="11" fill="var(--side-t)"/>
+        <text x="230" y="140" text-anchor="middle">o₁</text><text x="410" y="140" text-anchor="middle">o₂</text>
+        <text x="320" y="92" text-anchor="middle" style="fill:var(--cross)">rank r</text>
+        <text x="62" y="200" text-anchor="middle">group 1</text><text x="578" y="200" text-anchor="middle">group 2</text>
+      </svg>
+    </div>
+    <p class="caption">Lemma A.3 of the paper. Each party keeps its own wire to its hub; only the dotted wire depends on the rank.</p>
+  </figure>
+</section>
+
+<section class="stack">
+  <div class="stack col">
+    <div class="eyebrow">3 · Curvature</div>
+    <h2>Why the geometry cannot curve like a sphere</h2>
+    <p>The paper proves an exact identity between integer tables for two <em>crossing</em> wires, one from <i class="v">a</i> to <i class="v">c</i> and one from <i class="v">b</i> to <i class="v">d</i>. It writes their product as a sum of pieces that are cheap across one split whenever they are expensive across the other. Fed through the hub bound and averaged over fine chains of points, this becomes the inequality of Bruhat and Tits for every price. For any points <i class="v">x</i>, <i class="v">v</i>, <i class="v">z</i> and the midpoint <i class="v">m</i> of <i class="v">x</i> and <i class="v">v</i>:</p>
+    <div class="formula">|zm|²  ≤  ½|zx|²  +  ½|zv|²  −  ¼|xv|²</div>
+    <p>In a flat plane this is the median formula, with equality. Spaces where it always holds are called CAT(0), the spaces of non-positive curvature. Below, the same three distances are taken in four geometries. Γ is the left side minus the right side, so a price needs Γ ≤ 0.</p>
+  </div>
+  <div class="plate">
+    <div class="plate-head">
+      <h3>Same triangle, four geometries</h3>
+      <div class="controls">
+        <div class="control"><label for="cD">half-distance D = |xm|</label><div class="row"><input id="cD" type="range" min="0.1" max="1.4" step="0.01" value="0.8"><output id="oD"></output></div></div>
+        <div class="control"><label for="cT">distance t = |zm|</label><div class="row"><input id="cT" type="range" min="0.1" max="1.4" step="0.01" value="0.8"><output id="oT"></output></div></div>
+      </div>
+    </div>
+    <div class="geo" id="geo"></div>
+    <p class="caption">z sits at distance t from m, perpendicular to the segment xv. Distances use the true formula of each geometry (spherical and hyperbolic laws of cosines, path length in the tree); the drawings are schematic. Only the sphere breaks the inequality, so no price can look like a sphere.</p>
+  </div>
+</section>
+
+<section class="stack">
+  <div class="stack col">
+    <div class="eyebrow">4 · The flat case</div>
+    <h2>Put the wires on a cube and watch the hubs save length</h2>
+    <p>The paper shows that one of two things is true of every field, without knowing which. In the <em>flat case</em>, every finite Euclidean configuration is a price, so ordinary geometry can be used. The polynomial it attacks is the <em>complete network</em>: <i class="v">k</i> nodes, every pair joined by a wire of <i class="v">ℓ</i> bits. A small permanent circuit would give a small circuit for it.</p>
+    <p>For each pair <i class="v">a</i> &lt; <i class="v">b</i>, the end of the wire at node <i class="v">a</i> sits at the face centre ½<i class="v">e</i>ₐ of a <i class="v">k</i>-dimensional cube and the end at node <i class="v">b</i> sits at −½<i class="v">e</i>ₐ, so every wire has length 1. For a balanced set <i class="v">S</i> of nodes, the two hubs sit a short way from the centre, toward and against the summed positions of the S-side ends. Click nodes to change <i class="v">S</i>.</p>
+  </div>
+  <div class="plate">
+    <div class="plate-head">
+      <h3>Complete network on k nodes</h3>
+      <div class="controls">
+        <div class="control"><label for="cK">nodes k</label><div class="row"><input id="cK" type="range" min="3" max="12" step="1" value="9"><output id="oK"></output></div></div>
+        <div class="control"><label for="cL">bits per wire ℓ, in units of √k</label><div class="row"><input id="cL" type="range" min="100" max="400" step="10" value="100"><output id="oL"></output></div></div>
+        <button class="chip" id="bWorst" type="button">Show the worst balanced S</button>
+      </div>
+    </div>
+    <div class="figs">
+      <div class="fig">
+        <div class="label">The network · click a node</div>
+        <svg id="gA" viewBox="0 0 320 320" role="group" aria-label="Complete graph; nodes can be toggled in and out of S"></svg>
+      </div>
+      <div class="fig">
+        <div class="label">The cube view · ends and hubs, projected</div>
+        <svg id="gB" viewBox="0 0 320 320" role="img" aria-label="Wire ends at the face centres of a cube, with lines from each end to its hub"></svg>
+      </div>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--side-s)"></span>in S, hub o_S</span>
+      <span><span class="sw" style="background:var(--side-t)"></span>not in S, hub −o_S</span>
+      <span><span class="sw" style="background:var(--cross)"></span>wires that cross the cut</span>
+    </div>
+    <p class="warn" id="warn" hidden></p>
+    <div class="readout" id="readout"></div>
+    <p class="caption">The cube lives in k dimensions; the right panel projects it onto a plane, with the 2k face centres spaced around a circle and the hubs drawn at their true projected positions. All numbers are computed in the full k-dimensional space. “Worst S” is the smallest saving over all balanced sets, which is what the bound may use, since the circuit, not we, picks the set. The bound line is the paper’s inequality (E.2) with its error terms δ sent to zero; the published constants are more conservative.</p>
+  </div>
+  <div class="stack col">
+    <p>The saving is small, a fraction of <i class="v">k</i> out of a total length of <i class="v">k</i>(<i class="v">k</i>−1)/2, but it is multiplied by ℓ, while the hubs cost only 2η·log <i class="v">L</i> with η = 2/(9√<i class="v">k</i>). That forces log <i class="v">L</i> up to about ℓ·<i class="v">k</i>^(3/2)/14, against log <i class="v">m</i> ≈ <i class="v">k</i>ℓ for the matching permanent. Their ratio, the exponent in <i class="v">L</i> ≥ <i class="v">m</i>^c, grows like √<i class="v">k</i>, so no fixed power of <i class="v">m</i> is enough. At the sizes drawn here the exponent is still below 1: the argument only bites at large <i class="v">k</i>.</p>
+    <p>The complete network matters. In a path, the network of a chain of matrix products, some balanced set is crossed by a single wire, the hubs save almost nothing, and the bound vanishes. That is the shape of the determinant’s escape.</p>
+  </div>
+</section>
+
+<section class="stack col">
+  <div class="eyebrow">5 · Limits of this page</div>
+  <h2>What is not shown here</h2>
+  <ul class="plain">
+    <li>The paper proves that the flat case or the <em>contracting case</em> holds for every field, and does not know which. The contracting case is a different argument entirely (Poincaré inequalities, rerouting laws, cutting computations into pieces, and a diagonal argument). It is not drawn here.</li>
+    <li>Prices exist through a non-constructive argument (Zorn’s lemma). They cannot be computed for a real system such as a trained network.</li>
+    <li>The bound is quasi-polynomial: m^(c·(log m)^(1/3)) gates. The best known circuits for the permanent are exponential. Much room remains.</li>
+    <li>Boolean circuits are untouched, because they only need to be right on 0 and 1. P vs NP stays open, as the paper itself states.</li>
+  </ul>
+</section>
+
+<footer>Built by Claude (Opus 5.5) from the paper’s Sections 2, B, C and E. Formulas and constants follow the paper; every number on this page is computed live in your browser. Source: github.com/anttiluode/CommunicationGeometryHasNoPositiveCurvature</footer>
+
+</div>
+
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+  const fmt = (x, d = 3) => (Number.isFinite(x) ? x.toFixed(d) : "–");
+
+  /* ---------- Section 3: curvature ---------- */
+  const geos = [
+    { key: "sphere", name: "Sphere", note: "positive curvature", zx: (t, D) => Math.acos(Math.cos(t) * Math.cos(D)), bow: 0.16 },
+    { key: "plane", name: "Plane", note: "zero curvature", zx: (t, D) => Math.hypot(t, D), bow: 0 },
+    { key: "hyper", name: "Hyperbolic plane", note: "negative curvature", zx: (t, D) => Math.acosh(Math.cosh(t) * Math.cosh(D)), bow: -0.16 },
+    { key: "tree", name: "Tree", note: "branching, no area", zx: (t, D) => t + D, tree: true },
+  ];
+  const geoBox = $("geo");
+  const cards = geos.map((g) => {
+    const card = document.createElement("div");
+    card.className = "geo-card";
+    card.innerHTML = `<div class="name">${g.name}</div><div class="label" style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">${g.note}</div>`;
+    const svg = el("svg", { viewBox: "0 0 200 140", role: "img", "aria-label": g.name + " triangle" }, card);
+    const gam = document.createElement("div"); gam.className = "gamma"; card.appendChild(gam);
+    const ver = document.createElement("div"); ver.className = "verdict"; card.appendChild(ver);
+    geoBox.appendChild(card);
+    return { g, svg, gam, ver };
+  });
+  function bowPath(p, q, c, f) {
+    const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+    let nx = mx - c[0], ny = my - c[1];
+    const n = Math.hypot(nx, ny) || 1, len = Math.hypot(q[0] - p[0], q[1] - p[1]);
+    nx /= n; ny /= n;
+    return `M${p[0]},${p[1]} Q${mx + nx * f * len},${my + ny * f * len} ${q[0]},${q[1]}`;
+  }
+  function drawGeo(card, t, D) {
+    const { g, svg, gam, ver } = card;
+    svg.textContent = "";
+    const s = 60, cx = 100, base = 112;
+    const m = [cx, base], x = [cx - D * s, base], v = [cx + D * s, base], z = [cx, base - t * s];
+    const cen = [cx, base - (t * s) / 3];
+    if (g.tree) {
+      const x2 = [cx - D * s * 0.9, base + 18], v2 = [cx + D * s * 0.9, base + 18], z2 = [cx, base - t * s];
+      for (const p of [x2, v2, z2]) el("line", { x1: m[0], y1: m[1], x2: p[0], y2: p[1], stroke: "var(--ink)", "stroke-width": 1.6 }, svg);
+      pts([["x", x2], ["v", v2], ["z", z2], ["m", m]]);
+    } else {
+      const seg = (p, q, col, w, dash) => el("path", { d: bowPath(p, q, cen, g.bow), fill: "none", stroke: col, "stroke-width": w, "stroke-dasharray": dash || "" }, svg);
+      seg(x, z, "var(--ink)", 1.6); seg(v, z, "var(--ink)", 1.6);
+      el("line", { x1: x[0], y1: x[1], x2: v[0], y2: v[1], stroke: "var(--ink)", "stroke-width": 1.6 }, svg);
+      el("line", { x1: m[0], y1: m[1], x2: z[0], y2: z[1], stroke: "var(--cross)", "stroke-width": 1.4, "stroke-dasharray": "4 4" }, svg);
+      pts([["x", x], ["v", v], ["z", z], ["m", m]]);
+    }
+    function pts(list) {
+      for (const [name, p] of list) {
+        el("circle", { cx: p[0], cy: p[1], r: 3.6, fill: name === "m" ? "var(--cross)" : "var(--ink)" }, svg);
+        const tx = el("text", { x: p[0] + (name === "v" ? 7 : name === "x" ? -13 : 7), y: p[1] + (name === "z" ? 4 : -6), "font-size": 11 }, svg);
+        tx.textContent = name;
+      }
+    }
+    const zx = g.zx(t, D);
+    const gamma = t * t - 0.5 * zx * zx - 0.5 * zx * zx + D * D;
+    gam.innerHTML = `|zx| = |zv| = ${fmt(zx)}<br>Γ = ${gamma >= 0 ? "+" : "−"}${fmt(Math.abs(gamma) < 5e-13 ? 0 : Math.abs(gamma))}`;
+    const allowed = gamma <= 1e-12;
+    ver.className = "verdict " + (allowed ? "ok" : "bad");
+    ver.textContent = allowed ? (Math.abs(gamma) < 1e-12 ? "allowed · equality" : "allowed for a price") : "forbidden for a price";
+  }
+  function updateGeo() {
+    const D = +$("cD").value, t = +$("cT").value;
+    $("oD").textContent = D.toFixed(2); $("oT").textContent = t.toFixed(2);
+    cards.forEach((c) => drawGeo(c, t, D));
+  }
+  $("cD").addEventListener("input", updateGeo);
+  $("cT").addEventListener("input", updateGeo);
+  updateGeo();
+
+  /* ---------- Section 4: flat case ---------- */
+  let k = 9, S = new Set([0, 1, 2]);
+  const worstCache = {};
+  const balanced = (n, kk) => kk <= 3 * n && 3 * n <= 2 * kk;
+
+  function geometry(kk, set) {
+    // positions: end (a,b) a<b at +1/2 e_a (node a); end (b,a) at -1/2 e_a (node b)
+    const w = new Array(kk).fill(0);
+    for (let a = 0; a < kk; a++) {
+      let c = 0;
+      for (let b = a + 1; b < kk; b++) if (set.has(a) !== set.has(b)) c++;
+      w[a] = set.has(a) ? c : -c;
+    }
+    const nw = Math.hypot(...w);
+    const eta = 2 / (9 * Math.sqrt(kk));
+    const o = nw > 0 ? w.map((x) => (eta * x) / nw) : w.map(() => 0);
+    let dist = 0;
+    for (let a = 0; a < kk; a++)
+      for (let b = a + 1; b < kk; b++)
+        for (const [node, s] of [[a, 1], [b, -1]]) {
+          const side = set.has(node) ? 1 : -1; // hub is side*o
+          dist += Math.sqrt(0.25 - s * side * o[a] + eta * eta);
+        }
+    const N = (kk * (kk - 1)) / 2;
+    return { w, nw, eta, o, dist, N, saving: N - dist };
+  }
+  function worst(kk) {
+    if (worstCache[kk]) return worstCache[kk];
+    let best = null;
+    for (let mask = 1; mask < 1 << kk; mask++) {
+      let n = 0, m = mask; while (m) { n += m & 1; m >>= 1; }
+      if (!balanced(n, kk)) continue;
+      const set = new Set(); for (let a = 0; a < kk; a++) if (mask & (1 << a)) set.add(a);
+      const g = geometry(kk, set);
+      if (!best || g.saving < best.saving) best = { saving: g.saving, set };
+    }
+    worstCache[kk] = best;
+    return best;
+  }
+
+  const gA = $("gA"), gB = $("gB");
+  function drawNetwork() {
+    gA.textContent = "";
+    const c = 160, R = 120, P = [];
+    for (let a = 0; a < k; a++) { const ang = (2 * Math.PI * a) / k - Math.PI / 2; P.push([c + R * Math.cos(ang), c + R * Math.sin(ang)]); }
+    for (let a = 0; a < k; a++) for (let b = a + 1; b < k; b++) {
+      const crossing = S.has(a) !== S.has(b);
+      el("line", { class: "edge", x1: P[a][0], y1: P[a][1], x2: P[b][0], y2: P[b][1], stroke: crossing ? "var(--cross)" : "var(--rule)", "stroke-width": crossing ? 2 : 1 }, gA);
+    }
+    for (let a = 0; a < k; a++) {
+      const g = el("g", { class: "node", tabindex: 0, role: "button", "aria-pressed": S.has(a), "aria-label": `node ${a + 1}, ${S.has(a) ? "in S" : "not in S"}` }, gA);
+      el("circle", { cx: P[a][0], cy: P[a][1], r: 13, fill: S.has(a) ? "var(--side-s)" : "var(--plate)", stroke: S.has(a) ? "var(--side-s)" : "var(--side-t)", "stroke-width": 2.5 }, g);
+      const tx = el("text", { x: P[a][0], y: P[a][1] + 4, "text-anchor": "middle", "font-size": 11, style: `fill:${S.has(a) ? "var(--plate)" : "var(--ink)"}` }, g);
+      tx.textContent = a + 1;
+      const toggle = () => { S.has(a) ? S.delete(a) : S.add(a); update(); };
+      g.addEventListener("click", toggle);
+      g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    }
+  }
+  function drawCube(geo) {
+    gB.textContent = "";
+    const c = 160, scale = 240; // half-unit -> 120px
+    const u = []; for (let a = 0; a < k; a++) { const ang = (Math.PI * a) / k - Math.PI / 2; u.push([Math.cos(ang), Math.sin(ang)]); }
+    const proj = (vec) => { let x = 0, y = 0; vec.forEach((val, a) => { x += val * u[a][0]; y += val * u[a][1]; }); return [c + scale * x, c + scale * y]; };
+    el("circle", { cx: c, cy: c, r: 120, fill: "none", stroke: "var(--rule)", "stroke-dasharray": "2 5" }, gB);
+    const hub = proj(geo.o), anti = proj(geo.o.map((x) => -x));
+    const plus = (a) => [c + 120 * u[a][0], c + 120 * u[a][1]], minus = (a) => [c - 120 * u[a][0], c - 120 * u[a][1]];
+    // wires: diameters, weighted by how many wires share them
+    for (let a = 0; a < k - 1; a++) {
+      const mult = k - 1 - a;
+      el("line", { x1: plus(a)[0], y1: plus(a)[1], x2: minus(a)[0], y2: minus(a)[1], stroke: "var(--grid)", "stroke-width": 1 + mult * 0.6 }, gB);
+    }
+    // end -> hub routes
+    const hasHubs = geo.nw > 0;
+    for (let a = 0; a < k - 1; a++) {
+      const groups = [[plus(a), [[a, k - 1 - a]]], [minus(a), []]];
+      for (let b = a + 1; b < k; b++) groups[1][1].push([b, 1]);
+      for (const [pt, members] of groups) {
+        let inS = 0, out = 0;
+        for (const [node, cnt] of members) (S.has(node) ? (inS += cnt) : (out += cnt));
+        if (!hasHubs) continue;
+        if (inS) el("line", { x1: pt[0], y1: pt[1], x2: hub[0], y2: hub[1], stroke: "var(--side-s)", "stroke-width": 0.6 + inS * 0.45, "stroke-opacity": 0.75 }, gB);
+        if (out) el("line", { x1: pt[0], y1: pt[1], x2: anti[0], y2: anti[1], stroke: "var(--side-t)", "stroke-width": 0.6 + out * 0.45, "stroke-opacity": 0.75 }, gB);
+      }
+    }
+    for (let a = 0; a < k; a++) {
+      for (const [pt, lab] of [[plus(a), `+e${a + 1}`], [minus(a), `−e${a + 1}`]]) {
+        el("circle", { cx: pt[0], cy: pt[1], r: 3.4, fill: "var(--ink)" }, gB);
+        const dx = pt[0] - c, dy = pt[1] - c, n = Math.hypot(dx, dy) || 1;
+        const tx = el("text", { x: pt[0] + (dx / n) * 14, y: pt[1] + (dy / n) * 14 + 3, "text-anchor": "middle", "font-size": 8.5 }, gB);
+        tx.textContent = lab;
+      }
+    }
+    if (hasHubs) {
+      el("circle", { cx: hub[0], cy: hub[1], r: 6, fill: "var(--side-s)" }, gB);
+      el("circle", { cx: anti[0], cy: anti[1], r: 6, fill: "var(--side-t)" }, gB);
+    }
+  }
+  function cell(label, value, sub) {
+    return `<div class="cell"><span class="k">${label}</span><span class="val">${value}</span>${sub ? `<span class="sub">${sub}</span>` : ""}</div>`;
+  }
+  function update() {
+    $("oK").textContent = k;
+    const lm = +$("cL").value, ell = lm * Math.sqrt(k);
+    $("oL").textContent = `${lm}·√k = ${ell.toFixed(0)}`;
+    const n = S.size, isBal = balanced(n, k);
+    const warn = $("warn");
+    if (!isBal) { warn.hidden = false; warn.textContent = `S has ${n} of ${k} nodes. Balanced needs between ${Math.ceil(k / 3)} and ${Math.floor((2 * k) / 3)}; the argument only uses balanced sets.`; }
+    else warn.hidden = true;
+    drawNetwork();
+    const geo = geometry(k, S);
+    drawCube(geo);
+    const W = worst(k);
+    const k15 = Math.pow(k, 1.5);
+    const logL = (ell * W.saving - k15) / (2 * geo.eta);
+    const logm = k * ell + Math.log2(3 * k * k * k * ell);
+    const crossing = n * (k - n);
+    $("readout").innerHTML = [
+      cell("wires, total length", `${geo.N}`, "each wire has length 1"),
+      cell("wires crossing the cut", `${crossing}`, `paper: ≥ 2k²/9 = ${fmt((2 * k * k) / 9, 1)} for balanced S`),
+      cell("‖w_S‖, pull on the hubs", fmt(geo.nw, 2), `paper: ≥ (2/9)k^1.5 = ${fmt((2 / 9) * k15, 2)}`),
+      cell("hub offset η", fmt(geo.eta, 4), "η = 2/(9√k)"),
+      cell("ends → hubs, total", fmt(geo.dist, 3), `versus ${geo.N} without hubs`),
+      cell("saving for this S", fmt(geo.saving, 4), isBal ? "" : "not a balanced set"),
+      cell("saving, worst balanced S", fmt(W.saving, 4), `guaranteed ≥ 4k/81 = ${fmt((4 * k) / 81, 4)}`),
+      cell("log₂ m, permanent size", fmt(logm, 0), "m ≈ 3k³ℓ·2^(kℓ)"),
+      cell("log₂ L, gates forced", `≥ ${fmt(logL, 0)}`, "(ℓ·saving − k^1.5) / (2η)"),
+      cell("exponent c in L ≥ m^c", fmt(logL / logm, 3), "grows like √k"),
+    ].join("");
+  }
+  $("cK").addEventListener("input", () => {
+    k = +$("cK").value;
+    S = new Set(); for (let a = 0; a < Math.round(k / 3); a++) S.add(a);
+    update();
+  });
+  $("cL").addEventListener("input", update);
+  $("bWorst").addEventListener("click", () => { S = new Set(worst(k).set); update(); });
+  update();
+})();
+</script>
